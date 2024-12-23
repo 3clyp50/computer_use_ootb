@@ -250,12 +250,20 @@ class ShowUIExecutor:
             bbox = (screen['x'], screen['y'], screen['x'] + screen['width'], screen['y'] + screen['height'])
 
         else:  # Linux or other OS
-            cmd = "xrandr | grep ' primary' | awk '{print $4}'"
+            cmd = "xrandr | grep ' primary' | awk '{print \\$4}'"
             try:
-                output = subprocess.check_output(cmd, shell=True).decode()
-                resolution = output.strip().split()[0]
-                width, height = map(int, resolution.split('x'))
-                bbox = (0, 0, width, height)  # Assuming single primary screen for simplicity
+                output = subprocess.check_output(cmd, shell=True).decode().strip()
+                resolution = output.split()[0]  # e.g., "1494x804+0+0"
+
+                # Truncate anything after a plus sign.
+                # In "1494x804+0+0", splitting on '+' yields ["1494x804", "0+0"].
+                if '+' in resolution:
+                    resolution = resolution.split('+', 1)[0]  # "1494x804"
+
+                width_str, height_str = resolution.split('x')  # now "1494", "804"
+                width, height = int(width_str), int(height_str)
+                return width, height
+
             except subprocess.CalledProcessError:
                 raise RuntimeError("Failed to get screen resolution on Linux.")
         
