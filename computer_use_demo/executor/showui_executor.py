@@ -250,7 +250,7 @@ class ShowUIExecutor:
             bbox = (screen['x'], screen['y'], screen['x'] + screen['width'], screen['y'] + screen['height'])
 
         else:  # Linux or other OS
-            cmd = "xrandr | grep ' primary' | awk '{print \\$4}'"
+            cmd = "xrandr | grep 'connected primary' | awk '{print $4}'"
             try:
                 output = subprocess.check_output(cmd, shell=True).decode().strip()
                 resolution = output.split()[0]  # e.g., "1494x804+0+0"

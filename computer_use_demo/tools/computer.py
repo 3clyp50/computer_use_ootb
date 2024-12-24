@@ -595,13 +595,21 @@ class ComputerTool(BaseAnthropicTool):
                 screen = sorted_screens[self.selected_screen]
                 return screen['width'], screen['height']
 
-        else:  # Linux or other OS
-            cmd = "xrandr | grep ' primary' | awk '{print $4}'"
+        # Linux / other
+        else:
+            cmd = "xrandr | grep 'connected primary' | awk '{print $4}'"
             try:
-                output = subprocess.check_output(cmd, shell=True).decode()
-                resolution = output.strip().split()[0]
-                width, height = map(int, resolution.split('x'))
+                output = subprocess.check_output(cmd, shell=True).decode().strip()
+                # example raw output: "1706x894+0+0"
+                resolution = output.split()[0]
+
+                if '+' in resolution:
+                    resolution = resolution.split('+', 1)[0]  # now e.g. "1706x894"
+
+                width_str, height_str = resolution.split('x')
+                width, height = int(width_str), int(height_str)
                 return width, height
+
             except subprocess.CalledProcessError:
                 raise RuntimeError("Failed to get screen resolution on Linux.")
     
